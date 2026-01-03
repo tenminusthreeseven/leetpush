@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "LeetPush",
+  "version": "1.0",
+  "description": "Push LeetCode solutions to GitHub",
+
+  "action": {
+    "default_popup": "index.html"
+  },
+
+  "permissions": ["activeTab", "tabs","storage"],
+
+  "host_permissions": ["https://leetcode.com/*"],
+
+  "content_scripts": [
+  {
+    "matches": ["https://leetcode.com/problems/*"],
+    "js": ["assets/content.js"],
+    "all_frames": true
+  }
+]
+
+}
