@@ -1,4 +1,4 @@
-#LEETPUSH
+# LeetPush – Push LeetCode Solutions to GitHub
 
 LeetPush – Push LeetCode Solutions to GitHub
 
