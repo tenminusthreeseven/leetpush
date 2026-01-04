@@ -1,10 +1,10 @@
 # LeetPush – Push LeetCode Solutions to GitHub
 
-LeetPush – Push LeetCode Solutions to GitHub
 
 LeetPush is a browser extension that allows users to push their LeetCode solutions directly to a GitHub repository with one click.
 It eliminates manual copy-paste and helps developers maintain a clean, organized record of their coding practice.
-How to use doc- https://docs.google.com/document/d/1bTzQTQwOpa2NHxcyEU_z9--T550twgz1J3XTiZmIWL8/edit?tab=t.0#heading=h.u7xb7mf59gtp
+
+## How to use doc- https://docs.google.com/document/d/1bTzQTQwOpa2NHxcyEU_z9--T550twgz1J3XTiZmIWL8/edit?tab=t.0#heading=h.u7xb7mf59gtp
 
 ✨ Features
 
