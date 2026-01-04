@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "https://leetpush-backend.onrender.com";
 
 export default function Popup() {
   const [status, setStatus] = useState("");
