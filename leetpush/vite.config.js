@@ -3,7 +3,11 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+
   build: {
+    target: "es2020",
+    modulePreload: false,
+
     rollupOptions: {
       input: {
         main: "index.html",
@@ -11,7 +15,9 @@ export default defineConfig({
       },
       output: {
         entryFileNames: (chunk) => {
-          if (chunk.name === "content") return "assets/content.js";
+          if (chunk.name === "content") {
+            return "assets/content.js";
+          }
           return "assets/[name]-[hash].js";
         }
       }

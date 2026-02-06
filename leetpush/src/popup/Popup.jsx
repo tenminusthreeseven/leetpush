@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 
 const API_URL = "https://leetpush-backend.onrender.com";
 
+// Cross-browser extension API
+const ext = typeof browser !== "undefined" ? browser : chrome;
+
 export default function Popup() {
   const [status, setStatus] = useState("");
   const [token, setToken] = useState("");
@@ -10,9 +13,9 @@ export default function Popup() {
 
   // 🔁 Load saved config
   useEffect(() => {
-    if (!chrome?.storage?.local) return;
+    if (!ext?.storage?.local) return;
 
-    chrome.storage.local.get(["githubToken", "githubRepo"], (res) => {
+    ext.storage.local.get(["githubToken", "githubRepo"], (res) => {
       if (res.githubToken && res.githubRepo) {
         setToken(res.githubToken);
         setRepo(res.githubRepo);
@@ -24,7 +27,7 @@ export default function Popup() {
   // 💾 Save config
   const saveConfig = () => {
     if (!token || !repo) {
-      setStatus("❌ Please enter both GitHub token and repo (username/repo)");
+      setStatus("❌ Please enter both GitHub token and repo");
       return;
     }
 
@@ -33,25 +36,25 @@ export default function Popup() {
       return;
     }
 
-    chrome.storage.local.set(
+    ext.storage.local.set(
       {
         githubToken: token,
         githubRepo: repo,
       },
       () => {
         setIsConfigured(true);
-        setStatus("✅ Configuration saved successfully");
+        setStatus("✅ Configuration saved");
       }
     );
   };
 
   // 🔄 Reset config
   const resetConfig = () => {
-    chrome.storage.local.remove(["githubToken", "githubRepo"], () => {
+    ext.storage.local.remove(["githubToken", "githubRepo"], () => {
       setToken("");
       setRepo("");
       setIsConfigured(false);
-      setStatus("🔁 Configuration reset. Please re-enter details.");
+      setStatus("🔁 Configuration reset");
     });
   };
 
@@ -59,45 +62,57 @@ export default function Popup() {
   const pushSolution = async () => {
     setStatus("🔍 Extracting code from LeetCode...");
 
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
+    try {
+      const tabs = await ext.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
 
-    chrome.tabs.sendMessage(tab.id, { type: "GET_CODE" }, async (data) => {
-      if (!data || !data.code) {
-        setStatus("❌ No code found. Write code on LeetCode first.");
+      const tab = tabs[0];
+      if (!tab?.id) {
+        setStatus("❌ No active tab found");
         return;
       }
 
-      try {
-        setStatus("📤 Pushing solution to GitHub...");
-
-        const res = await fetch(`${API_URL}/push`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...data,
-            token,
-            repo,
-          }),
-        });
-
-        if (res.ok) {
-          setStatus("✅ Pushed successfully 🚀");
-        } else {
-          const text = await res.text();
-          setStatus(
-            text.includes("403")
-              ? "❌ Permission denied. Check token access to repo."
-              : "❌ Push failed. Check token or repo name."
-          );
+      ext.tabs.sendMessage(tab.id, { type: "GET_CODE" }, async (data) => {
+        if (chrome.runtime.lastError) {
+          setStatus("❌ Reload LeetCode page and try again");
+          return;
         }
-      } catch (err) {
-        console.error(err);
-        setStatus("❌ Backend not running (start server on port 3000)");
-      }
-    });
+
+        if (!data || !data.code) {
+          setStatus("❌ No code found in editor");
+          return;
+        }
+
+        try {
+          setStatus("📤 Pushing to GitHub...");
+
+          const res = await fetch(`${API_URL}/push`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...data,
+              token,
+              repo,
+            }),
+          });
+
+          if (res.ok) {
+            setStatus("✅ Pushed successfully 🚀");
+          } else {
+            const text = await res.text();
+            setStatus("❌ Push failed: " + text);
+          }
+        } catch (err) {
+          console.error(err);
+          setStatus("❌ Backend unreachable");
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      setStatus("❌ Cannot access tab");
+    }
   };
 
   return (
@@ -113,7 +128,7 @@ export default function Popup() {
         backgroundColor: "#eef2ff",
       }}
     >
-      {/* 🔷 Header */}
+      {/* Header */}
       <div
         style={{
           background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
@@ -130,7 +145,6 @@ export default function Popup() {
         </p>
       </div>
 
-      {/* ⚙️ Configuration / Push */}
       {!isConfigured ? (
         <>
           <input
@@ -204,15 +218,13 @@ export default function Popup() {
               cursor: "pointer",
             }}
           >
-            Reset GitHub Configuration
+            Reset Configuration
           </button>
         </>
       )}
 
-      {/* 📢 Status */}
       <p style={{ fontSize: 12, marginTop: 12 }}>{status}</p>
 
-      {/* 👤 Footer */}
       <div
         style={{
           marginTop: 14,

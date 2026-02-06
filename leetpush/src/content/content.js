@@ -1,27 +1,28 @@
-function extractCodeFromDOM() {
-  // Monaco renders hidden textarea with code
-  const textareas = document.querySelectorAll("textarea");
+function extractCodeFromMonaco() {
+  const lines = document.querySelectorAll(
+    ".monaco-editor .view-lines .view-line"
+  );
 
-  for (const ta of textareas) {
-    if (ta.value && ta.value.length > 20) {
-      return ta.value;
-    }
-  }
+  if (!lines || lines.length === 0) return null;
 
-  return null;
+  const code = Array.from(lines)
+    .map(line => line.innerText)
+    .join("\n");
+
+  return code.trim() ? code : null;
 }
 
-function waitForCode(timeout = 6000) {
+function waitForCode(timeout = 8000) {
   return new Promise((resolve) => {
     const start = Date.now();
 
     const check = () => {
-      const code = extractCodeFromDOM();
+      const code = extractCodeFromMonaco();
       if (code) return resolve(code);
 
       if (Date.now() - start > timeout) return resolve(null);
 
-      setTimeout(check, 300);
+      setTimeout(check, 250);
     };
 
     check();
